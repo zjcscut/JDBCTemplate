@@ -1,8 +1,15 @@
 package cn.zjc;
 
 import cn.zjc.entity.User;
+import cn.zjc.fastdao.transaction.Transaction;
+import cn.zjc.fastdao.transaction.TransactionImpl;
+import cn.zjc.jdbc.entity.Result;
+import cn.zjc.jdbc.pool.DruidDataSourceConfig;
+import cn.zjc.jdbc.pool.common.FastDaoConnectionFactory;
+import org.junit.Before;
 import org.junit.Test;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
@@ -17,398 +24,538 @@ import java.util.Date;
 public class TestScope {
 
 
-	@Test
-	public void testDriver() throws SQLException {
-		Driver driver = new com.mysql.jdbc.Driver();
+    @Test
+    public void testDriver() throws SQLException {
+        Driver driver = new com.mysql.jdbc.Driver();
 
-		String url = "jdbc:mysql://localhost:3306/jdbc?characterEncoding=utf8&useSSL=true";
+        String url = "jdbc:mysql://localhost:3306/jdbc?characterEncoding=utf8&useSSL=true";
 
-		Properties properties = new Properties();
-		properties.put("user", "root");
-		properties.put("password", "root");
+        Properties properties = new Properties();
+        properties.put("user", "root");
+        properties.put("password", "root");
 
-		Connection con = driver.connect(url, properties);
+        Connection con = driver.connect(url, properties);
 
-		System.out.println(con);
-	}
+        System.out.println(con);
+    }
 
-	public Connection getConnection() throws ClassNotFoundException, IllegalAccessException, InstantiationException, SQLException, IOException {
-		String driverClass = null;
-		String jdbcUrl = null;
-		String user = null;
-		String password = null;
+    public Connection getConnection() throws ClassNotFoundException, IllegalAccessException, InstantiationException, SQLException, IOException {
+        String driverClass = null;
+        String jdbcUrl = null;
+        String user = null;
+        String password = null;
 
-		try (InputStream in = getClass().getClassLoader().
-				getResourceAsStream("jdbc.properties")) {
+        try (InputStream in = getClass().getClassLoader().
+                getResourceAsStream("jdbc.properties")) {
 
-			Properties info = new Properties();
-			info.load(in);
+            Properties info = new Properties();
+            info.load(in);
 
-			driverClass = info.getProperty("driver");
-			jdbcUrl = info.getProperty("jdbcUrl");
-			user = info.getProperty("user");
-			password = info.getProperty("password");
+            driverClass = info.getProperty("driver");
+            jdbcUrl = info.getProperty("jdbcUrl");
+            user = info.getProperty("user");
+            password = info.getProperty("password");
 
-			Properties properties = new Properties();
-			properties.put("user", user);
-			properties.put("password", password);
-
-
-			Driver driver = (Driver) Class.forName(driverClass).newInstance();
-
-			Connection connection = driver.connect(jdbcUrl, properties);
-
-			return connection;
-		}
-	}
-
-	@Test
-	public void testCommon() throws ClassNotFoundException, SQLException, InstantiationException, IOException, IllegalAccessException {
-		System.out.println(getConnection());
-	}
+            Properties properties = new Properties();
+            properties.put("user", user);
+            properties.put("password", password);
 
 
-	@Test
-	public void testDriverManager() throws IOException, SQLException, ClassNotFoundException {
-		System.out.println(getConnectionByDriverManager());
-	}
+            Driver driver = (Driver) Class.forName(driverClass).newInstance();
 
-	public Connection getConnectionByDriverManager() throws IOException, ClassNotFoundException, SQLException {
-		String driverClass = null;
-		String jdbcUrl = null;
-		String user = null;
-		String password = null;
+            Connection connection = driver.connect(jdbcUrl, properties);
 
-		try (InputStream in = this.getClass().getClassLoader().
-				getResourceAsStream("jdbc.properties")) {
+            return connection;
+        }
+    }
 
-			Properties info = new Properties();
-			info.load(in);
+    @Test
+    public void testCommon() throws ClassNotFoundException, SQLException, InstantiationException, IOException, IllegalAccessException {
+        System.out.println(getConnection());
+    }
 
-			driverClass = info.getProperty("driver");
-			jdbcUrl = info.getProperty("jdbcUrl");
-			user = info.getProperty("user");
-			password = info.getProperty("password");
 
-			//加载数据库驱动
-			Class.forName(driverClass);
+    @Test
+    public void testDriverManager() throws IOException, SQLException, ClassNotFoundException {
+        System.out.println(getConnectionByDriverManager());
+    }
 
-			Connection connection = DriverManager.getConnection(jdbcUrl, user, password);
+    public Connection getConnectionByDriverManager() throws IOException, ClassNotFoundException, SQLException {
+        String driverClass = null;
+        String jdbcUrl = null;
+        String user = null;
+        String password = null;
+
+        try (InputStream in = this.getClass().getClassLoader().
+                getResourceAsStream("jdbc.properties")) {
+
+            Properties info = new Properties();
+            info.load(in);
+
+            driverClass = info.getProperty("driver");
+            jdbcUrl = info.getProperty("jdbcUrl");
+            user = info.getProperty("user");
+            password = info.getProperty("password");
+
+            //加载数据库驱动
+            Class.forName(driverClass);
+
+            Connection connection = DriverManager.getConnection(jdbcUrl, user, password);
 
 //			System.out.println(connection);
-			return connection;
-		}
-	}
+            return connection;
+        }
+    }
 
-	@Test
-	public void testStastment() throws Exception {
-		//获取数据库连接
-		Connection connection = null;
-		Statement statement = null;
+    @Test
+    public void testStastment() throws Exception {
+        //获取数据库连接
+        Connection connection = null;
+        Statement statement = null;
 
 
-		try {
-			connection = getConnectionByDriverManager();
+        try {
+            connection = getConnectionByDriverManager();
 
-			//准备插入的sql
+            //准备插入的sql
 //			String sql = "INSERT INTO USER (NAME,EMAIL,BIRTH) VALUES " +
 //					"('zjc','zjcscut@163.com','1993-3-10')";
-			String sql = "UPDATE USER SET NAME ='zjcscut' WHERE ID = 1";
-
-			//创建Statement对象
-			statement = connection.createStatement();
-
-			//执行sql
-			statement.executeUpdate(sql);
-		} catch (Exception e) {
-
-		} finally {
-			try {
-
-				//关闭statement
-				if (null != statement) {
-					statement.close();
-				}
-			} catch (Exception e) {
-
-			} finally {
-				//关闭连接
-				if (null != connection) {
-					connection.close();
-				}
-			}
-		}
-	}
-
-	public void update(String sql) {
-		//获取数据库连接
-		Connection connection = null;
-		Statement statement = null;
-
-
-		try {
-			connection = getConnectionByDriverManager();
-
-			//创建Statement对象
-			statement = connection.createStatement();
-
-			//执行sql
-			statement.executeUpdate(sql);
-		} catch (Exception e) {
-
-		} finally {
-			try {
-
-				//关闭statement
-				if (null != statement) {
-					statement.close();
-				}
-			} catch (Exception e) {
-
-			} finally {
-				//关闭连接
-				if (null != connection) {
-					try {
-						connection.close();
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-	}
-
-
-	@Test
-	public void TestTools() {
-		JDBCTools.update("UPDATE USER SET NAME ='zjc' WHERE ID = 1");
-	}
-
-	@Test
-	public void testResultSet() {
-		String sql = "select id,name AS USERNAME,email,birth from USER where id = 1";
-		try (Connection coon = JDBCTools.getConnectionByDriverManager();
-
-			 Statement statement = coon.createStatement();
-			 ResultSet re = statement.executeQuery(sql)) {
-
-			//获取列详细信息
-			ResultSetMetaData metaData = re.getMetaData();  //获取ResultSet元数据
-			int count = metaData.getColumnCount();
-			for (int i = 1; i < count; i++) {  //i从1开始
-				System.out.println("列名:" + metaData.getColumnName(i));  //列名
-				System.out.println("列类型名:" + metaData.getColumnTypeName(i)); //数据库类类型
-				System.out.println("Catalog名:" + metaData.getCatalogName(i));
-				System.out.println("ColumnClass名:" + metaData.getColumnClassName(i)); //java类型
-				System.out.println("ColumnLabel名:" + metaData.getColumnLabel(i)); //列label名称,一般是自定义的别名
-				System.out.println("表名:" + metaData.getTableName(i));
-				System.out.println("Scala名:" + metaData.getScale(i));
-				System.out.println("Schema名:" + metaData.getSchemaName(i));
-			}
-
-			while (re.next()) {
-				int id = re.getInt("ID");
-				String name = re.getString("USERNAME");
-				String email = re.getString("EMAIL");
-				java.util.Date birth = re.getTimestamp("BIRTH");
-
-				System.out.println(id);
-				System.out.println(name);
-				System.out.println(email);
-				System.out.println(birth);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Test
-	public void testPrepareStatement() {
-		String sql = "INSERT INTO `USER` (`NAME`,`EMAIL`,`BIRTH`) VALUES(?,?,?)";
-		try (Connection connection = getConnectionByDriverManager();
-			 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            String sql = "UPDATE USER SET NAME ='zjcscut' WHERE ID = 1";
+
+            //创建Statement对象
+            statement = connection.createStatement();
+
+            //执行sql
+            statement.executeUpdate(sql);
+        } catch (Exception e) {
+
+        } finally {
+            try {
+
+                //关闭statement
+                if (null != statement) {
+                    statement.close();
+                }
+            } catch (Exception e) {
+
+            } finally {
+                //关闭连接
+                if (null != connection) {
+                    connection.close();
+                }
+            }
+        }
+    }
+
+    public void update(String sql) {
+        //获取数据库连接
+        Connection connection = null;
+        Statement statement = null;
+
+
+        try {
+            connection = getConnectionByDriverManager();
+
+            //创建Statement对象
+            statement = connection.createStatement();
+
+            //执行sql
+            statement.executeUpdate(sql);
+        } catch (Exception e) {
+
+        } finally {
+            try {
+
+                //关闭statement
+                if (null != statement) {
+                    statement.close();
+                }
+            } catch (Exception e) {
+
+            } finally {
+                //关闭连接
+                if (null != connection) {
+                    try {
+                        connection.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+
+    @Test
+    public void TestTools() {
+        JDBCTools.update("UPDATE USER SET NAME ='zjc' WHERE ID = 1");
+    }
+
+    @Test
+    public void testResultSet() {
+        String sql = "select id,name AS USERNAME,email,birth from USER where id = 1";
+        try (Connection coon = JDBCTools.getConnectionByDriverManager();
+
+             Statement statement = coon.createStatement();
+             ResultSet re = statement.executeQuery(sql)) {
+
+            //获取列详细信息
+            ResultSetMetaData metaData = re.getMetaData();  //获取ResultSet元数据
+            int count = metaData.getColumnCount();
+            for (int i = 1; i < count; i++) {  //i从1开始
+                System.out.println("列名:" + metaData.getColumnName(i));  //列名
+                System.out.println("列类型名:" + metaData.getColumnTypeName(i)); //数据库类类型
+                System.out.println("Catalog名:" + metaData.getCatalogName(i));
+                System.out.println("ColumnClass名:" + metaData.getColumnClassName(i)); //java类型
+                System.out.println("ColumnLabel名:" + metaData.getColumnLabel(i)); //列label名称,一般是自定义的别名
+                System.out.println("表名:" + metaData.getTableName(i));
+                System.out.println("Scala名:" + metaData.getScale(i));
+                System.out.println("Schema名:" + metaData.getSchemaName(i));
+            }
+
+            while (re.next()) {
+                int id = re.getInt("ID");
+                String name = re.getString("USERNAME");
+                String email = re.getString("EMAIL");
+                java.util.Date birth = re.getTimestamp("BIRTH");
+
+                System.out.println(id);
+                System.out.println(name);
+                System.out.println(email);
+                System.out.println(birth);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testPrepareStatement() {
+        String sql = "INSERT INTO `USER` (`NAME`,`EMAIL`,`BIRTH`) VALUES(?,?,?)";
+        try (Connection connection = getConnectionByDriverManager();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-			//设置参数
-			preparedStatement.setString(1, "evan");
-			preparedStatement.setString(2, "evan@163.com");
-			preparedStatement.setObject(3, new Date());
+            //设置参数
+            preparedStatement.setString(1, "evan");
+            preparedStatement.setString(2, "evan@163.com");
+            preparedStatement.setObject(3, new Date());
 
-			preparedStatement.executeUpdate(); //这里不要再提交一次sql
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+            preparedStatement.executeUpdate(); //这里不要再提交一次sql
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	@Test
-	public void TestSQLInject() {
+    @Test
+    public void TestSQLInject() {
 
-		String NAME = "'' OR 1=1";
-		String sql = "Select * from user where NAME = " + NAME + "";
-		try (Statement statement = getConnectionByDriverManager().createStatement();
-			 ResultSet re = statement.executeQuery(sql)) {
+        String NAME = "'' OR 1=1";
+        String sql = "Select * from user where NAME = " + NAME + "";
+        try (Statement statement = getConnectionByDriverManager().createStatement();
+             ResultSet re = statement.executeQuery(sql)) {
 
-			while (re.next()) {
-				System.out.println(re.getInt("ID"));
-			}
+            while (re.next()) {
+                System.out.println(re.getInt("ID"));
+            }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Test
-	public void TestResultSetA() {
-		String sql = "SELECT ID AS id,NAME AS name,EMAIL AS email , BIRTH AS birth FROM USER WHERE ID = ?";
-		ResultSet resultSet = null;
-		try (Connection connection = getConnectionByDriverManager();
-			 PreparedStatement statement = connection.prepareStatement(sql);
-		) {
-
-			statement.setInt(1, 1);
-
-			resultSet = statement.executeQuery();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void TestResultSetA() {
+        String sql = "SELECT ID AS id,NAME AS name,EMAIL AS email , BIRTH AS birth FROM USER WHERE ID = ?";
+        ResultSet resultSet = null;
+        try (Connection connection = getConnectionByDriverManager();
+             PreparedStatement statement = connection.prepareStatement(sql);
+        ) {
+
+            statement.setInt(1, 1);
+
+            resultSet = statement.executeQuery();
 
-			ResultSetMetaData metaData = resultSet.getMetaData();
+            ResultSetMetaData metaData = resultSet.getMetaData();
 
 
-			Map<String, Object> values = new HashMap<>();
-
-			while (resultSet.next()) {
-				for (int i = 0; i < metaData.getColumnCount(); i++) {
-					values.put(metaData.getColumnLabel(i + 1), resultSet.getObject(metaData.getColumnLabel(i + 1)));
-				}
-			}
+            Map<String, Object> values = new HashMap<>();
+
+            while (resultSet.next()) {
+                for (int i = 0; i < metaData.getColumnCount(); i++) {
+                    values.put(metaData.getColumnLabel(i + 1), resultSet.getObject(metaData.getColumnLabel(i + 1)));
+                }
+            }
 
-			Class clazz = User.class;
+            Class clazz = User.class;
 
-			Object o = clazz.newInstance();
-			for (Map.Entry<String, Object> entry : values.entrySet()) {
-				ReflectionUtils.setFieldValue(o, entry.getKey(), entry.getValue());
-			}
+            Object o = clazz.newInstance();
+            for (Map.Entry<String, Object> entry : values.entrySet()) {
+                ReflectionUtils.setFieldValue(o, entry.getKey(), entry.getValue());
+            }
 
 
-			System.out.println(o);
+            System.out.println(o);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (resultSet != null) {
-				try {
-					resultSet.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
 
-	@Test
-	public void testGet() {
-		String sql = "SELECT ID AS id,NAME AS name,EMAIL AS email , BIRTH AS birth FROM USER WHERE ID = ?";
-		User u = get(User.class, sql, 1);
-		System.out.println(u);
-	}
-
-	public <T> T get(Class<T> T, String sql, Object... args) {
-		T entity = null;
-
-		ResultSet resultSet = null;
-		try (Connection connection = getConnectionByDriverManager();
-			 PreparedStatement statement = connection.prepareStatement(sql);
-		) {
-
-
-			for (int i = 0; i < args.length; i++) {
-				statement.setObject(i + 1, args[i]);
-			}
-			resultSet = statement.executeQuery();
-
-			ResultSetMetaData metaData = resultSet.getMetaData();
-
-			Map<String, Object> values = new HashMap<>();
-
-			while (resultSet.next()) {
-				for (int i = 0; i < metaData.getColumnCount(); i++) {
-					values.put(metaData.getColumnLabel(i + 1), resultSet.getObject(metaData.getColumnLabel(i + 1)));
-				}
-			}
-
-
-			entity = T.newInstance();
-			for (Map.Entry<String, Object> entry : values.entrySet()) {
-				ReflectionUtils.setFieldValue(entity, entry.getKey(), entry.getValue());
-			}
-
-
-			return entity;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		} finally {
-			if (resultSet != null) {
-				try {
-					resultSet.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-
-	@Test
-	public void TestGetList(){
-		String sql = "SELECT ID AS id,NAME AS name,EMAIL AS email , BIRTH AS birth FROM USER WHERE ID > 0";
-		List<User> list = getList(User.class,sql);
-		System.out.println(list);
-	}
-
-	public <T> List<T> getList(Class<T> t, String sql, Object... args) {
-
-
-		ResultSet resultSet = null;
-		try (Connection connection = getConnectionByDriverManager();
-			 PreparedStatement statement = connection.prepareStatement(sql);
-		) {
-
-			List<T> list = new ArrayList<>();
-
-			for (int i = 0; i < args.length; i++) {
-				statement.setObject(i + 1, args[i]);
-			}
-			resultSet = statement.executeQuery();
-
-			ResultSetMetaData metaData = resultSet.getMetaData();
-
-
-			while (resultSet.next()) {
-				T entity = t.newInstance();
-				for (int i = 0; i < metaData.getColumnCount(); i++) {
-					ReflectionUtils.setFieldValue(entity, metaData.getColumnLabel(i + 1), resultSet.getObject(i + 1));
-				}
-				list.add(entity);
-			}
-
-
-			return list;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		} finally {
-			if (resultSet != null) {
-				try {
-					resultSet.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
+    @Test
+    public void testGet() {
+        String sql = "SELECT ID AS id,NAME AS name,EMAIL AS email , BIRTH AS birth FROM USER WHERE ID = ?";
+        User u = get(User.class, sql, 1);
+        System.out.println(u);
+    }
+
+    public <T> T get(Class<T> T, String sql, Object... args) {
+        T entity = null;
+
+        ResultSet resultSet = null;
+        try (Connection connection = getConnectionByDriverManager();
+             PreparedStatement statement = connection.prepareStatement(sql);
+        ) {
+
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+            resultSet = statement.executeQuery();
+
+            ResultSetMetaData metaData = resultSet.getMetaData();
+
+            Map<String, Object> values = new HashMap<>();
+
+            while (resultSet.next()) {
+                for (int i = 0; i < metaData.getColumnCount(); i++) {
+                    values.put(metaData.getColumnLabel(i + 1), resultSet.getObject(metaData.getColumnLabel(i + 1)));
+                }
+            }
+
+
+            entity = T.newInstance();
+            for (Map.Entry<String, Object> entry : values.entrySet()) {
+                ReflectionUtils.setFieldValue(entity, entry.getKey(), entry.getValue());
+            }
+
+
+            return entity;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+
+    @Test
+    public void TestGetList() {
+        String sql = "SELECT ID AS id,NAME AS name,EMAIL AS email , BIRTH AS birth FROM USER WHERE ID > 0";
+        List<User> list = getList(User.class, sql);
+        System.out.println(list);
+    }
+
+    public <T> List<T> getList(Class<T> t, String sql, Object... args) {
+
+
+        ResultSet resultSet = null;
+        try (Connection connection = getConnectionByDriverManager();
+             PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            List<T> list = new ArrayList<>();
+
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+            resultSet = statement.executeQuery();
+
+            ResultSetMetaData metaData = resultSet.getMetaData();
+
+
+            while (resultSet.next()) {
+                T entity = t.newInstance();
+                for (int i = 0; i < metaData.getColumnCount(); i++) {
+                    ReflectionUtils.setFieldValue(entity, metaData.getColumnLabel(i + 1), resultSet.getObject(i + 1));
+                }
+                list.add(entity);
+            }
+
+
+            return list;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+
+    @Test
+    public void TestGetResults() {
+        String sql = "SELECT ID AS id,NAME AS name,EMAIL AS email , BIRTH AS birth FROM USER WHERE ID = ?";
+        List<Result> list = getResults(sql, 2);
+        for (Result r : list) {
+//            System.out.println("生日:" + r.getDateTime("BIRTH"));
+            System.out.println("ID:" + r.getInteger("ID"));
+            System.out.println("姓名:" + r.getString("NAME"));
+            System.out.println("生日:" + r.getObject("BIRTH"));
+            System.out.println("邮件:" + r.getString("EMAIL"));
+        }
+    }
+
+
+    public List<Result> getResults(String sql, Object... args) {
+        ResultSet resultSet = null;
+        try (Connection connection = getConnectionByDriverManager();
+             PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            List<Result> results = new ArrayList<>();
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+            resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                results.add(Result.create(resultSet));
+            }
+            return results;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+
+    @Test
+    public void TestDruidPool() throws Exception {
+        String sql = "SELECT ID AS id,NAME AS name,EMAIL AS email , BIRTH AS birth FROM USER WHERE ID = ?";
+        List<Result> list = TestPool(sql, 2);
+        for (Result r : list) {
+//            System.out.println("生日:" + r.getDateTime("BIRTH"));
+            System.out.println("ID:" + r.getInteger("ID"));
+            System.out.println("姓名:" + r.getString("NAME"));
+            System.out.println("生日:" + r.getObject("BIRTH"));
+            System.out.println("邮件:" + r.getString("EMAIL"));
+        }
+
+        System.in.read();
+    }
+
+    public List<Result> TestPool(String sql, Object... args) throws Exception {
+        ResultSet resultSet = null;
+        DruidDataSourceConfig.setLocation("jdbc.properties");
+        DataSource dataSource = DruidDataSourceConfig.getInstance().getDataSource();
+
+        try (FastDaoConnectionFactory factory = new FastDaoConnectionFactory(dataSource);
+             Connection connection = factory.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            List<Result> results = new ArrayList<>();
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+            resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                results.add(Result.create(resultSet));
+            }
+
+            return results;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+//            DruidDataSourceConfig.getInstance().close();
+
+        }
+    }
+
+
+    private FastDaoConnectionFactory factory;
+
+    @Before
+    public void init() {
+        DruidDataSourceConfig.setLocation("jdbc.properties");
+        DataSource dataSource = DruidDataSourceConfig.getInstance().getDataSource();
+        factory = new FastDaoConnectionFactory(dataSource);
+    }
+
+    @Test
+    public void TestTransaction() {
+        Transaction tx = new TransactionImpl();
+        try {
+            tx.start();
+
+            TestT("INSERT INTO `USER` (`NAME`,`EMAIL`,`BIRTH`) VALUES(?,?,?)", "zsssjc", "@163.com", new Date());
+//            TestT("INSERT INTO `USER` (`NAME`,`EMAIL`,`BIRTH`) VALUES(?,?,?)", "zjsc", "@163.com", new Date());
+//            TestT("INSERT INTO `USER` (`NAME`,`EMAIL`,`BIRTH`) VALUES(?,?,?)", "zjssc", "@163.com", new Date());
+            tx.commit();
+
+        } catch (Exception e) {
+           e.printStackTrace();
+        }
+
+    }
+
+    public void TestT(String sql, Object... args) throws Exception {
+
+        try (Connection connection = factory.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            for (int i = 0; i < args.length; i++) {
+                statement.setObject(i + 1, args[i]);
+            }
+           statement.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+    }
 
 
 }
