@@ -2,7 +2,7 @@ package cn.zjc.jdbc.entity;
 
 
 import cn.zjc.jdbc.config.DaoConst;
-import cn.zjc.jdbc.exception.DaoException;
+import cn.zjc.exception.DaoException;
 import cn.zjc.jdbc.utils.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

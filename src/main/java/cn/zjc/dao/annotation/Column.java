@@ -1,4 +1,4 @@
-package cn.zjc.fastdao.entity.annotation;
+package cn.zjc.dao.annotation;
 
 import java.lang.annotation.*;
 

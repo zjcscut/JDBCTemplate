@@ -1,7 +1,7 @@
-package cn.zjc.fastdao.transaction;
+package cn.zjc.dao.transaction;
 
 
-import cn.zjc.jdbc.exception.DaoException;
+import cn.zjc.exception.DaoException;
 import cn.zjc.jdbc.pool.common.FastDaoConnectionFactory;
 
 import java.sql.Connection;
@@ -16,7 +16,6 @@ public class TransactionImpl implements Transaction {
 
     @Override
     public void start() {
-        System.out.println("开始事务");
         try (Connection c = FastDaoConnectionFactory.getInstance().getConnection()){
             if (c == null){
                 throw new DaoException("start Transaction failed");
@@ -30,8 +29,6 @@ public class TransactionImpl implements Transaction {
 
     @Override
     public void commit() {
-        System.out.println("提交事务"
-        );
         try(Connection c = FastDaoConnectionFactory.container.get()) {
             if (c == null){
                 throw new DaoException("commit Transaction failed");

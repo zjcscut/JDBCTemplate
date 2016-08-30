@@ -1,4 +1,4 @@
-package cn.zjc.fastdao.transaction;
+package cn.zjc.dao.transaction;
 
 /**
  * @author zhangjinci

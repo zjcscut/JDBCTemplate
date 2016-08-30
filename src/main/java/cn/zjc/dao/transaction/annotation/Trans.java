@@ -1,4 +1,4 @@
-package cn.zjc.fastdao.transaction.annotation;
+package cn.zjc.dao.transaction.annotation;
 
 import java.lang.annotation.*;
 

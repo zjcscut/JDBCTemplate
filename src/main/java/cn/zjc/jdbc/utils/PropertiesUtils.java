@@ -1,6 +1,6 @@
 package cn.zjc.jdbc.utils;
 
-import cn.zjc.jdbc.exception.DaoException;
+import cn.zjc.exception.DaoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

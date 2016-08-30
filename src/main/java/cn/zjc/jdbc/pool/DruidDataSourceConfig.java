@@ -1,6 +1,6 @@
 package cn.zjc.jdbc.pool;
 
-import cn.zjc.jdbc.exception.DaoException;
+import cn.zjc.exception.DaoException;
 import cn.zjc.jdbc.utils.PropertiesUtils;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;

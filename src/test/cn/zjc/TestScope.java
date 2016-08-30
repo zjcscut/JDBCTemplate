@@ -1,8 +1,8 @@
 package cn.zjc;
 
 import cn.zjc.entity.User;
-import cn.zjc.fastdao.transaction.Transaction;
-import cn.zjc.fastdao.transaction.TransactionImpl;
+import cn.zjc.dao.transaction.Transaction;
+import cn.zjc.dao.transaction.TransactionImpl;
 import cn.zjc.jdbc.entity.Result;
 import cn.zjc.jdbc.pool.DruidDataSourceConfig;
 import cn.zjc.jdbc.pool.common.FastDaoConnectionFactory;
