@@ -1,5 +1,7 @@
 package cn.zjc.dao.convetor;
 
+import cn.zjc.exception.ConverteException;
+
 /**
  * @author zjc
  * @version 2016/8/30 23:44
@@ -8,6 +10,6 @@ package cn.zjc.dao.convetor;
 public abstract class DefaultConvertor<F, T> implements Convertor<F, T> {
 
 
-	protected abstract T convert(F f, Class<?> toType, Object... args);
+	public abstract T convert(F f, Class<?> toType, String ... args) throws ConverteException;
 
 }

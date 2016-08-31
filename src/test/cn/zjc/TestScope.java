@@ -1,5 +1,8 @@
 package cn.zjc;
 
+import cn.zjc.dao.convetor.Convertor;
+import cn.zjc.dao.convetor.DefaultConvertor;
+import cn.zjc.dao.convetor.storage.StringToInteger;
 import cn.zjc.entity.User;
 import cn.zjc.dao.transaction.Transaction;
 import cn.zjc.dao.transaction.TransactionImpl;
@@ -536,7 +539,7 @@ public class TestScope {
             tx.commit();
 
         } catch (Exception e) {
-           e.printStackTrace();
+            e.printStackTrace();
         }
 
     }
@@ -549,12 +552,19 @@ public class TestScope {
             for (int i = 0; i < args.length; i++) {
                 statement.setObject(i + 1, args[i]);
             }
-           statement.executeUpdate();
+            statement.executeUpdate();
 
         } catch (Exception e) {
             e.printStackTrace();
 
         }
+    }
+
+    @Test
+    public void testConvete() {
+        DefaultConvertor<String, Integer> convertor = new StringToInteger();
+        Integer s = convertor.convert("111111", Integer.class);
+        System.out.println(s + "   " + (s != null && s instanceof Integer));
     }
 
 
