@@ -1,4 +1,4 @@
-package cn.zjc.jdbc.utils;
+package cn.zjc.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;

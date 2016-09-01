@@ -1,4 +1,4 @@
-package cn.zjc.jdbc.utils;
+package cn.zjc.utils;
 
 import cn.zjc.exception.DaoException;
 import org.slf4j.Logger;

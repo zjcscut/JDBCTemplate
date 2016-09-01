@@ -563,7 +563,7 @@ public class TestScope {
     @Test
     public void testConvete() {
         DefaultConvertor<String, Integer> convertor = new StringToInteger();
-        Integer s = convertor.convert("111111", Integer.class);
+        Integer s = convertor.convert("sdsdsd", Integer.class);
         System.out.println(s + "   " + (s != null && s instanceof Integer));
     }
 
